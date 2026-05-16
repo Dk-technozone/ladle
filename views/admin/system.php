@@ -1,0 +1,1 @@
+<section class="grid gap-4 md:grid-cols-4"><?php foreach (['Cache Cleaner','Backup System','SQLite Optimization','CDN Settings','Security Logs','Rate Limiting','Upload Protection','License Verification'] as $tool): ?><div class="rounded-3xl border border-white/10 bg-white/5 p-6 font-black"><i class='bx bx-cog text-cyan-300'></i> <?= e($tool) ?></div><?php endforeach; ?></section>

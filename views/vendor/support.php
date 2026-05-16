@@ -1,0 +1,1 @@
+<div class="rounded-3xl border border-white/10 bg-white/5 p-6"><h2 class="text-2xl font-black">Support Ticket Handling</h2><p class="mt-2 text-slate-400">Vendor can manage support messages, replies, product-linked tickets, and buyer issues from this module.</p></div>
