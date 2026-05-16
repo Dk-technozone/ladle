@@ -1,6 +1,6 @@
 # PSP Marketplace — ThemeForest Clone PHP App
 
-A futuristic multi-vendor digital marketplace inspired by WBThemes, ThemeForest, Framer-style motion, and modern PSP gaming UI aesthetics. The old single-file implementation has been replaced with a modular PHP + SQLite architecture where `index.php` is only a small front controller.
+A futuristic multi-vendor digital marketplace inspired by WBThemes, ThemeForest, Framer-style motion, and modern PSP gaming UI aesthetics. The app uses a modular PHP + SQLite architecture where `index.php` is only a small front controller.
 
 ## What the platform sells
 
@@ -100,6 +100,23 @@ The product form covers the requested ThemeForest-style metadata:
 - Download system: main ZIP, additional files, file size, download limit, license type, support expiry, auto update token
 - Marketplace stats: sales, views, wishlist count, rating average, reviews count, trending score
 
+## Requirements
+
+- PHP 8.1+
+
+## Run locally
+
+```bash
+php -S 127.0.0.1:8000
+```
+
+Open:
+
+- Frontend: `http://127.0.0.1:8000`
+- Catalog: `http://127.0.0.1:8000/index.php?route=catalog`
+- Admin: `http://127.0.0.1:8000/index.php?area=admin&route=login`
+- Vendor: `http://127.0.0.1:8000/index.php?area=vendor&route=login`
+
 ## Login credentials
 
 Admin:
@@ -111,50 +128,7 @@ Vendor:
 
 - Email: `vendor@psp.local`
 - Password: `vendor123`
-=======
-# Ladle Themes PHP Marketplace
-
-A premium, mobile-first PHP marketplace script for selling WordPress themes, Blogger templates, Elementor kits, SEO themes, and digital products. It uses SQLite for storage, Tailwind CSS for the UI, Boxicons for icons, and includes a WooCommerce product extractor.
-
-## Features
-
-- Dark premium landing page inspired by modern theme marketplaces
-- Sticky navbar, cinematic hero, featured product grid, categories, testimonials, CTA banner, and footer
-- Mobile-first responsive layout with a sticky bottom menu
-- SQLite database auto-created at `data/marketplace.sqlite`
-- Seeded sample themes for first launch
-- WooCommerce REST product importer for published products
-- SEO-friendly meta tags and Product schema microdata
-- Dark/light mode toggle, scroll reveal animations, counters, gradients, and glassmorphis
-
-## Requirements
-
-- PHP 8.1+
-
-## Run locally
-
-```bash
-php -S 127.0.0.1:8000
-```
-Open:
-
-- Frontend: `http://127.0.0.1:8000`
-- Catalog: `http://127.0.0.1:8000/index.php?route=catalog`
-- Admin: `http://127.0.0.1:8000/index.php?area=admin&route=login`
-- Vendor: `http://127.0.0.1:8000/index.php?area=vendor&route=login`
 
 ## WooCommerce importer
 
 Create read-only WooCommerce REST credentials in WordPress admin under **WooCommerce → Settings → Advanced → REST API**. In the admin panel, open **Woo Import**, select a vendor/category, enter the store URL and credentials, and import products into SQLite.
-=======
-Open `http://127.0.0.1:8000` in your browser.
-
-## WooCommerce importer
-
-Create REST API credentials in WordPress admin under **WooCommerce → Settings → Advanced → REST API**. Use read access credentials, then submit:
-
-- Store URL, for example `https://example.com`
-- Consumer key beginning with `ck_`
-- Consumer secret beginning with `cs_`
-- Import limit between 1 and 50
-
