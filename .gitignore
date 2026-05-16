@@ -1,2 +1,4 @@
 data/*.sqlite
 data/*.sqlite-*
+database/sqlite/*.sqlite
+database/sqlite/*.sqlite-*
