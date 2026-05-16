@@ -1,10 +1,2 @@
 data/*.sqlite
 data/*.sqlite-*
-database/sqlite/*.sqlite
-database/sqlite/*.sqlite-*
-storage/cache/*
-!storage/cache/.gitkeep
-uploads/products/*
-!uploads/products/.gitkeep
-downloads/*
-!downloads/.gitkeep
