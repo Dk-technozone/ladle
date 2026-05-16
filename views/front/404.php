@@ -1,0 +1,1 @@
+<section class="mx-auto max-w-3xl px-4 py-24 text-center"><h1 class="font-display text-6xl font-black">404</h1><p class="mt-4 text-muted">The requested marketplace page was not found.</p><a class="neon-btn mt-8 inline-flex rounded-2xl px-6 py-4" href="<?= e(app_url()) ?>">Back Home</a></section>
