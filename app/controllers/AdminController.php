@@ -10,7 +10,7 @@ function handle_admin(string $route): void
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             verify_csrf();
             if (login_user(trim($_POST['email'] ?? ''), $_POST['password'] ?? '') && ($logged = current_user()) && $logged['role'] === 'admin') {
-                flash('success', 'Welcome to the PSP admin panel.');
+                flash('success', 'Welcome to the Digital Product Directory admin panel.');
                 redirect_to(app_url('dashboard', [], 'admin'));
             }
             logout_user();
@@ -27,7 +27,7 @@ function handle_admin(string $route): void
 
     $admin = require_role('admin');
     if ($route === 'products') {
-        render('admin/products', ['title' => 'Product Management', 'products' => product_query('latest', ['limit' => 200]), 'admin' => $admin], 'admin');
+        render('admin/products', ['title' => 'Product Directory', 'products' => product_query('latest', ['limit' => 200]), 'admin' => $admin], 'admin');
         return;
     }
     if ($route === 'product-create' || $route === 'product-edit') {
@@ -41,7 +41,7 @@ function handle_admin(string $route): void
             verify_csrf();
             try {
                 save_product_from_post($product);
-                flash('success', 'Product saved with full marketplace metadata.');
+                flash('success', 'Product saved.');
             } catch (Throwable $e) {
                 flash('error', $e->getMessage());
             }
@@ -53,33 +53,25 @@ function handle_admin(string $route): void
     if ($route === 'approve-product') {
         verify_csrf();
         db()->prepare('UPDATE products SET approval_status = ?, status = ? WHERE id = ?')->execute([$_POST['approval_status'] ?? 'approved', $_POST['status'] ?? 'published', (int) $_POST['id']]);
-        flash('success', 'Product moderation status updated.');
+        flash('success', 'Product status updated.');
         redirect_to(app_url('products', [], 'admin'));
     }
-    if ($route === 'vendors') {
+    if ($route === 'categories') {
+        render('admin/categories', ['title' => 'Categories', 'categories' => categories_with_counts()], 'admin');
+        return;
+    }
+    if ($route === 'coupons') {
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             verify_csrf();
-            db()->prepare('UPDATE vendors SET status = ?, verified = ? WHERE id = ?')->execute([$_POST['status'], isset($_POST['verified']) ? 1 : 0, (int) $_POST['id']]);
-            flash('success', 'Vendor verification updated.');
-            redirect_to(app_url('vendors', [], 'admin'));
+            db()->prepare('INSERT INTO coupons (code, discount_type, discount_value, expires_at, usage_limit, status) VALUES (?, ?, ?, ?, ?, ?)')->execute([strtoupper(trim($_POST['code'] ?? '')), $_POST['discount_type'] ?? 'percent', (float) ($_POST['discount_value'] ?? 0), trim($_POST['expires_at'] ?? ''), (int) ($_POST['usage_limit'] ?? 100), $_POST['status'] ?? 'active']);
+            flash('success', 'Coupon created.');
+            redirect_to(app_url('coupons', [], 'admin'));
         }
-        render('admin/vendors', ['title' => 'Vendor Management', 'vendors' => db()->query('SELECT vendors.*, users.email FROM vendors LEFT JOIN users ON users.id = vendors.user_id ORDER BY vendors.id DESC')->fetchAll()], 'admin');
-        return;
-    }
-    if ($route === 'orders') {
-        render('admin/orders', ['title' => 'Orders & Licenses', 'orders' => db()->query('SELECT orders.*, products.name AS product_name, vendors.store_name FROM orders LEFT JOIN products ON products.id = orders.product_id LEFT JOIN vendors ON vendors.id = orders.vendor_id ORDER BY orders.id DESC')->fetchAll()], 'admin');
-        return;
-    }
-    if ($route === 'marketing') {
-        render('admin/marketing', ['title' => 'Coupons & Homepage', 'coupons' => db()->query('SELECT * FROM coupons ORDER BY id DESC')->fetchAll()], 'admin');
+        render('admin/coupons', ['title' => 'Coupons & Offers', 'coupons' => db()->query('SELECT * FROM coupons ORDER BY id DESC')->fetchAll()], 'admin');
         return;
     }
     if ($route === 'seo') {
-        render('admin/seo', ['title' => 'SEO Manager', 'settings' => settings()], 'admin');
-        return;
-    }
-    if ($route === 'system') {
-        render('admin/system', ['title' => 'System Tools', 'logs' => db()->query('SELECT * FROM activity_logs ORDER BY id DESC LIMIT 20')->fetchAll()], 'admin');
+        render('admin/seo', ['title' => 'SEO Panel', 'settings' => settings()], 'admin');
         return;
     }
     if ($route === 'import') {
@@ -91,17 +83,37 @@ function handle_admin(string $route): void
             flash($result['status'] === 'success' ? 'success' : 'error', $result['message']);
             redirect_to(app_url('import', [], 'admin'));
         }
-        render('admin/import', ['title' => 'WooCommerce Extractor', 'imports' => db()->query('SELECT * FROM imports ORDER BY id DESC LIMIT 20')->fetchAll(), 'vendors' => db()->query('SELECT * FROM vendors ORDER BY store_name')->fetchAll(), 'categories' => categories_with_counts()], 'admin');
+        render('admin/import', ['title' => 'WordPress Importer', 'imports' => db()->query('SELECT * FROM imports ORDER BY id DESC LIMIT 20')->fetchAll(), 'vendors' => db()->query('SELECT * FROM vendors ORDER BY store_name')->fetchAll(), 'categories' => categories_with_counts()], 'admin');
+        return;
+    }
+    if ($route === 'appearance') {
+        render('admin/system', ['title' => 'Appearance', 'logs' => db()->query('SELECT * FROM activity_logs ORDER BY id DESC LIMIT 10')->fetchAll()], 'admin');
+        return;
+    }
+    if ($route === 'settings') {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            verify_csrf();
+            foreach (['site_name','site_tagline','notice_text','support_email','stripe_public_key','stripe_secret_key','razorpay_key_id','razorpay_key_secret','openai_api_key','telegram_bot_token','telegram_chat_id','social_telegram','social_youtube'] as $key) {
+                save_setting($key, trim($_POST[$key] ?? ''));
+            }
+            flash('success', 'Site, payment, AI, Telegram, and social settings saved.');
+            redirect_to(app_url('settings', [], 'admin'));
+        }
+        render('admin/settings', ['title' => 'Site Settings', 'settings' => settings()], 'admin');
+        return;
+    }
+    if ($route === 'pages') {
+        render('admin/pages', ['title' => 'Pages'], 'admin');
         return;
     }
     render('admin/dashboard', [
-        'title' => 'Admin Dashboard',
+        'title' => 'Dashboard',
         'admin' => $admin,
         'stats' => [
-            'products' => (int) db()->query('SELECT COUNT(*) FROM products')->fetchColumn(),
-            'pending' => (int) db()->query('SELECT COUNT(*) FROM products WHERE approval_status = "pending"')->fetchColumn(),
-            'vendors' => (int) db()->query('SELECT COUNT(*) FROM vendors')->fetchColumn(),
-            'orders' => (int) db()->query('SELECT COUNT(*) FROM orders')->fetchColumn(),
+            'total_products' => (int) db()->query('SELECT COUNT(*) FROM products')->fetchColumn(),
+            'total_views' => (int) db()->query('SELECT COALESCE(SUM(total_views),0) FROM products')->fetchColumn(),
+            'total_categories' => (int) db()->query('SELECT COUNT(*) FROM categories')->fetchColumn(),
+            'seo_health' => (int) db()->query('SELECT COUNT(*) FROM products WHERE meta_title != "" AND meta_description != ""')->fetchColumn(),
         ],
         'recent' => product_query('latest', ['limit' => 6]),
     ], 'admin');

@@ -137,6 +137,10 @@ function migrate(PDO $pdo): void
     $pdo->exec('CREATE TABLE IF NOT EXISTS licenses (id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER, product_id INTEGER, user_id INTEGER, license_key TEXT NOT NULL UNIQUE, license_type TEXT, domain_limit INTEGER DEFAULT 1, status TEXT DEFAULT "active", expires_at TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY AUTOINCREMENT, product_id INTEGER NOT NULL, user_id INTEGER, rating INTEGER NOT NULL, comment TEXT, verified INTEGER DEFAULT 1, status TEXT DEFAULT "approved", created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS wishlists (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, product_id INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, product_id))');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS carts (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL, product_id INTEGER NOT NULL, quantity INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS payment_integrations (id INTEGER PRIMARY KEY AUTOINCREMENT, provider TEXT NOT NULL, public_key TEXT, secret_key TEXT, webhook_secret TEXT, status TEXT DEFAULT "disabled", created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS ai_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, prompt TEXT NOT NULL, response TEXT, provider TEXT DEFAULT "openai", status TEXT DEFAULT "logged", created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS telegram_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, product_id INTEGER, message TEXT NOT NULL, status TEXT DEFAULT "queued", created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS coupons (id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, discount_type TEXT DEFAULT "percent", discount_value REAL NOT NULL, expires_at TEXT, usage_limit INTEGER, used_count INTEGER DEFAULT 0, status TEXT DEFAULT "active")');
     $pdo->exec('CREATE TABLE IF NOT EXISTS withdrawals (id INTEGER PRIMARY KEY AUTOINCREMENT, vendor_id INTEGER NOT NULL, amount REAL NOT NULL, method TEXT, status TEXT DEFAULT "pending", requested_at TEXT DEFAULT CURRENT_TIMESTAMP)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS support_tickets (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, vendor_id INTEGER, product_id INTEGER, subject TEXT NOT NULL, message TEXT NOT NULL, status TEXT DEFAULT "open", created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
@@ -155,6 +159,16 @@ function seed(PDO $pdo): void
         'primary_color' => '#6C4DFF',
         'accent_color' => '#00D4FF',
         'support_email' => 'support@psp.local',
+        'notice_text' => 'Limited launch offer: use coupon LAUNCH20 for 20% off premium themes.',
+        'stripe_public_key' => '',
+        'stripe_secret_key' => '',
+        'razorpay_key_id' => '',
+        'razorpay_key_secret' => '',
+        'openai_api_key' => '',
+        'telegram_bot_token' => '',
+        'telegram_chat_id' => '',
+        'social_telegram' => 'https://t.me/example',
+        'social_youtube' => '#',
     ];
     $setting = $pdo->prepare('INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)');
     foreach ($defaults as $key => $value) {
@@ -211,6 +225,11 @@ function seed(PDO $pdo): void
             $pdo->prepare('INSERT INTO product_changelog (product_id, version, notes, released_at) VALUES (?, ?, ?, date("now"))')->execute([$productId, '1.0.0', 'Initial premium marketplace release with documentation and demo assets.']);
             $pdo->prepare('INSERT INTO product_faqs (product_id, question, answer, sort_order) VALUES (?, ?, ?, ?)')->execute([$productId, 'Is documentation included?', 'Yes, every product includes setup documentation and support notes.', 1]);
         }
+    }
+
+    if ((int) $pdo->query('SELECT COUNT(*) FROM coupons')->fetchColumn() === 0) {
+        $pdo->prepare('INSERT INTO coupons (code, discount_type, discount_value, expires_at, usage_limit, status) VALUES (?, ?, ?, date("now", "+60 days"), ?, ?)')->execute(['LAUNCH20', 'percent', 20, 500, 'active']);
+        $pdo->prepare('INSERT INTO coupons (code, discount_type, discount_value, expires_at, usage_limit, status) VALUES (?, ?, ?, date("now", "+30 days"), ?, ?)')->execute(['SAVE10', 'fixed', 10, 200, 'active']);
     }
 
     if ((int) $pdo->query('SELECT COUNT(*) FROM reviews')->fetchColumn() === 0) {

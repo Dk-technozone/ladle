@@ -1,0 +1,1 @@
+<div class="rounded-3xl border border-slate-200 bg-white p-6"><h2 class="text-2xl font-black">Static Pages</h2><ul class="mt-4 list-disc space-y-1 pl-5 text-slate-700"><li>About</li><li>Contact</li><li>Privacy Policy</li><li>Terms</li></ul></div>

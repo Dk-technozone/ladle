@@ -170,6 +170,9 @@ function save_product_from_post(?array $existing = null, ?int $vendorId = null):
         $productId = (int) db()->lastInsertId();
     }
     sync_product_lists($productId);
+    if (($data[':status'] ?? '') === 'published' && function_exists('auto_post_product_to_telegram')) {
+        auto_post_product_to_telegram($productId);
+    }
     return $productId;
 }
 
